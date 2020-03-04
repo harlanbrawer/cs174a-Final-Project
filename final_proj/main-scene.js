@@ -101,7 +101,9 @@ window.Assignment_Three_Scene = window.classes.Assignment_Three_Scene =
             this.grid_speed_factor = 50;
             this.initial_grid_dist = 80;
 
+            //This gets set when the game is over
             this.lose = 0;
+
             this.sphere_radius = .5
         }
 
@@ -131,7 +133,7 @@ window.Assignment_Three_Scene = window.classes.Assignment_Three_Scene =
                 if (this.z_pos[0] > 8) {
                     for (let i = 0; i < this.arena.length; i++) {
                         for (let j = 0; j < this.arena.length; j++) {
-                            this.arena[i][j] = Math.random() >= 0.5;
+                            this.arena[i][j] = Math.random() >= 0.6;
                         }
                     }
                     this.xy_pos[0][0] = this.pos[0] - 16;
@@ -199,7 +201,7 @@ window.Assignment_Three_Scene = window.classes.Assignment_Three_Scene =
                 this.shapes.ball.draw(graphics_state, ball_transform, this.materials.ball_shade);
 
 
-                let desired = Mat4.inverse(ball_transform.times(Mat4.translation([0, 0, 20]))).times(Mat4.rotation(0, Vec.of(1, 0, 0)));
+                let desired = Mat4.inverse(ball_transform.times(Mat4.rotation(this.vel[0] / 50, Vec.of(0, 0, 1))).times(Mat4.translation([0, 0, 20])));
                 graphics_state.camera_transform = desired;
                 this.lights = [new Light(Vec.of(this.pos[0],this.pos[1] - 3,10,1), Color.of(1, 1, 1, 1), 1000)];
 
