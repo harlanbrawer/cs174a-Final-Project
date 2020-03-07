@@ -1,5 +1,5 @@
-window.Assignment_Four_Scene = window.classes.Assignment_Four_Scene =
-class Assignment_Four_Scene extends Scene_Component{
+window.final_proj = window.classes.final_proj =
+class final_proj extends Scene_Component{
 constructor(context, control_box) {
     // The scene begins by requesting the camera, shapes, and materials it will need.
     super(context, control_box);
@@ -24,14 +24,27 @@ constructor(context, control_box) {
     this.materials =
         {
             arena_shade: context.get_instance(Phong_Shader).material(Color.of(0.76, 0.8, 0.85, 1), {ambient: 1, diffusivity: 1, specularity: 1}),
-            ball_shade: context.get_instance(Phong_Shader).material(Color.of(0.5, 0.4, 0.15, 1), {ambient: 1, diffusivity: 1, specularity: 1}),
-            arena_shade1: context.get_instance(Phong_Shader).material(Color.of(0, 0.8, 0.6, 1), {ambient: 1}, {diffusivity: 1}, {specularity: 1}),
+            ball_shade: context.get_instance(Phong_Shader).material(Color.of(0,0,0,1), {ambient: 1, diffusivity: 1, specularity: 1, texture:context.get_instance("assets/earth.jpg", false)}),
+
+        arena_shade1: context.get_instance(Phong_Shader).material(Color.of(0, 0.8, 0.6, 1), {ambient: 1}, {diffusivity: 1}, {specularity: 1}),
             arena_shade2: context.get_instance(Phong_Shader).material(Color.of(0, 0.6, 0.9, 1), {ambient: 1}, {diffusivity: 1}, {specularity: 1}),
             arena_shade3: context.get_instance(Phong_Shader).material(Color.of(0.5, 0.9, 0.4, 1), {ambient: 1}, {diffusivity: 1}, {specularity: 1}),
             arena_shade4: context.get_instance(Phong_Shader).material(Color.of(0.9, 0.9, 0, 1), {ambient: 1, diffusivity: 1, specularity: 1}),
             moon: context.get_instance(Phong_Shader).material(Color.of(0,0,0,1), {ambient: 1, diffusivity: 1, specularity: 1, texture:context.get_instance("assets/moon.jpg", false)}),
             star_back: context.get_instance(Phong_Shader).material(Color.of(0,0,0,1), {ambient: 1, diffusivity: 1, specularity: 1, texture:context.get_instance("assets/star_back.jpg", false)}),
             bricks: context.get_instance(Phong_Shader).material(Color.of(0,0,0,1), {ambient: 1, diffusivity: 1, specularity: 1, texture:context.get_instance("assets/bricks.png", false)}),
+
+            one: context.get_instance(Phong_Shader).material(Color.of(1,1,1,1), {ambient: 1, diffusivity: 1, specularity: 1, texture:context.get_instance("assets/1-128.png", false)}),
+            two: context.get_instance(Phong_Shader).material(Color.of(1,1,1,1), {ambient: 1, diffusivity: 1, specularity: 1, texture:context.get_instance("assets/2-128.png", false)}),
+            three: context.get_instance(Phong_Shader).material(Color.of(1,1,1,1), {ambient: 1, diffusivity: 1, specularity: 1, texture:context.get_instance("assets/3-128.png", false)}),
+            four: context.get_instance(Phong_Shader).material(Color.of(1,1,1,1), {ambient: 1, diffusivity: 1, specularity: 1, texture:context.get_instance("assets/4-128.png", false)}),
+            five: context.get_instance(Phong_Shader).material(Color.of(1,1,1,1), {ambient: 1, diffusivity: 1, specularity: 1, texture:context.get_instance("assets/5-128.png", false)}),
+            six: context.get_instance(Phong_Shader).material(Color.of(1,1,1,1), {ambient: 1, diffusivity: 1, specularity: 1, texture:context.get_instance("assets/6-128.png", false)}),
+            seven: context.get_instance(Phong_Shader).material(Color.of(1,1,1,1), {ambient: 1, diffusivity: 1, specularity: 1, texture:context.get_instance("assets/7-128.png", false)}),
+            eight: context.get_instance(Phong_Shader).material(Color.of(1,1,1,1), {ambient: 1, diffusivity: 1, specularity: 1, texture:context.get_instance("assets/8-128.png", false)}),
+            nine: context.get_instance(Phong_Shader).material(Color.of(1,1,1,1), {ambient: 1, diffusivity: 1, specularity: 1, texture:context.get_instance("assets/9-128.png", false)}),
+            zero: context.get_instance(Phong_Shader).material(Color.of(1,1,1,1), {ambient: 1, diffusivity: 1, specularity: 1, texture:context.get_instance("assets/0-128.png", false)}),
+
         };
 
     this.texture_array = [this.materials.moon, this.materials.bricks, this.materials.arena_shade, this.materials.arena_shade1,this.materials.arena_shade4, this.materials.arena_shade2, this.materials.arena_shade3];
@@ -77,7 +90,9 @@ constructor(context, control_box) {
     this.xy_pos = [[0,0]];
     this.grid_speed_factor = 50;
     this.initial_grid_dist = 80;
-
+    this.z_pos[0] = -70;
+    this.score = -1;
+    this.score_flag = true;
     //This gets set when the game is over
     this.lose = 0;
 
@@ -108,22 +123,31 @@ display(graphics_state) {
     graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
     const t = graphics_state.animation_time / 1000, dt = graphics_state.animation_delta_time / 1000;
 
+    if (this.lose == 0) {
+        this.z_pos[0] = (t * this.grid_speed_factor) % this.initial_grid_dist - (this.initial_grid_dist - 10);
+        if (this.z_pos[0] > 8) {
+            for (let i = 0; i < this.arena.length; i++) {
+                for (let j = 0; j < this.arena.length; j++) {
+                    this.arena[i][j] = Math.random() >= 0.6;
+                }
+            }
+            this.xy_pos[0][0] = this.pos[0] - 16;
+            this.xy_pos[0][1] = this.pos[1] - 16;
+            let rand_level = Math.floor(Math.random() * (this.texture_array.length - .01));
+            this.level_texture = this.texture_array[rand_level];
 
-    this.z_pos[0] = (t * this.grid_speed_factor) % this.initial_grid_dist - (this.initial_grid_dist - 10);
-    if (this.z_pos[0] > 8) {
-        for (let i = 0; i < this.arena.length; i++) {
-            for (let j = 0; j < this.arena.length; j++) {
-                this.arena[i][j] = Math.random() >= 0.6;
+            if(this.score_flag) {
+                this.score = (this.score + 1) % 100;
+                this.score_flag = false;
             }
         }
-        this.xy_pos[0][0] = this.pos[0] - 16;
-        this.xy_pos[0][1] = this.pos[1] - 16;
-        let rand_level = Math.floor(Math.random()*(this.texture_array.length-.01));
-        this.level_texture = this.texture_array[rand_level];
+    }
+    if(this.z_pos[0] < -40){
+        this.score_flag = true;
     }
 
     let background_trans = Mat4.identity();
-    background_trans = background_trans.times(Mat4.translation([0,0,-50])).times(Mat4.scale([50,30,1]));
+    background_trans = background_trans.times(Mat4.translation([this.pos[0] + 1,this.pos[1] + 1,-50])).times(Mat4.scale([50,30,1]));
     this.shapes.bg.draw(graphics_state, background_trans, this.materials.star_back);
 
     let boxMinZ = this.z_pos[0] - 1;
@@ -181,7 +205,7 @@ display(graphics_state) {
     }
     else //if the game is over
     {
-        this.pos = Vec.of(0,0,0);
+        //this.pos = Vec.of(0,0,0);
     }
 
     let ball_transform = Mat4.identity().times(Mat4.translation(this.pos)).times(Mat4.scale([.5, .5, .5]));
@@ -192,6 +216,57 @@ display(graphics_state) {
     graphics_state.camera_transform = desired;
     this.lights = [new Light(Vec.of(this.pos[0],this.pos[1] - 3,10,1), Color.of(1, 1, 1, 1), 1000)];
 
+
+
+
+
+    let score_transformation1 = Mat4.translation([8 + this.pos[0], 4 + this.pos[1], -2]).times(Mat4.scale([0.5, 0.5, 1]));
+    let score_transformation2 = Mat4.translation([7 + this.pos[0], 4 + this.pos[1], -2]).times(Mat4.scale([0.5, 0.5, 1]));
+
+    let score_oneth = this.score % 10;
+    let score_tenth = (this.score - score_oneth) / 10;
+
+    if(score_tenth == 1){
+        this.shapes.bg.draw(graphics_state, score_transformation2, this.materials.one);
+    } else if(score_tenth == 2){
+        this.shapes.bg.draw(graphics_state, score_transformation2, this.materials.two);
+    } else if(score_tenth == 3){
+        this.shapes.bg.draw(graphics_state, score_transformation2, this.materials.three);
+    } else if(score_tenth == 4){
+        this.shapes.bg.draw(graphics_state, score_transformation2, this.materials.four);
+    } else if(score_tenth == 5){
+        this.shapes.bg.draw(graphics_state, score_transformation2, this.materials.five);
+    } else if(score_tenth == 6){
+        this.shapes.bg.draw(graphics_state, score_transformation2, this.materials.six);
+    } else if(score_tenth == 7){
+        this.shapes.bg.draw(graphics_state, score_transformation2, this.materials.seven);
+    } else if(score_tenth == 8){
+        this.shapes.bg.draw(graphics_state, score_transformation2, this.materials.eight);
+    } else if(score_tenth == 9){
+        this.shapes.bg.draw(graphics_state, score_transformation2, this.materials.nine);
+    }
+
+    if(score_oneth == 0) {
+        this.shapes.bg.draw(graphics_state, score_transformation1, this.materials.zero);
+    } else if(score_oneth == 1) {
+        this.shapes.bg.draw(graphics_state, score_transformation1, this.materials.one);
+    } else if(score_oneth == 2) {
+        this.shapes.bg.draw(graphics_state, score_transformation1, this.materials.two);
+    } else if(score_oneth == 3) {
+        this.shapes.bg.draw(graphics_state, score_transformation1, this.materials.three);
+    } else if(score_oneth == 4) {
+        this.shapes.bg.draw(graphics_state, score_transformation1, this.materials.four);
+    } else if(score_oneth == 5) {
+        this.shapes.bg.draw(graphics_state, score_transformation1, this.materials.five);
+    } else if(score_oneth == 6) {
+        this.shapes.bg.draw(graphics_state, score_transformation1, this.materials.six);
+    } else if(score_oneth == 7) {
+        this.shapes.bg.draw(graphics_state, score_transformation1, this.materials.seven);
+    } else if(score_oneth == 8) {
+        this.shapes.bg.draw(graphics_state, score_transformation1, this.materials.eight);
+    } else if(score_oneth == 9) {
+        this.shapes.bg.draw(graphics_state, score_transformation1, this.materials.nine);
+    }
 }
 };
 
