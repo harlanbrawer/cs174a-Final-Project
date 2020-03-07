@@ -28,13 +28,13 @@ constructor(context, control_box) {
             arena_shade1: context.get_instance(Phong_Shader).material(Color.of(0, 0.8, 0.6, 1), {ambient: 1}, {diffusivity: 1}, {specularity: 1}),
             arena_shade2: context.get_instance(Phong_Shader).material(Color.of(0, 0.6, 0.9, 1), {ambient: 1}, {diffusivity: 1}, {specularity: 1}),
             arena_shade3: context.get_instance(Phong_Shader).material(Color.of(0.5, 0.9, 0.4, 1), {ambient: 1}, {diffusivity: 1}, {specularity: 1}),
-            texture1: context.get_instance(Phong_Shader).material(Color.of(0,0,0,1), {ambient: 1, diffusivity: 1, specularity: 1, texture:context.get_instance("assets/bricks.png", false)}),
-            background: context.get_instance(Phong_Shader).material(Color.of(0,0,0,1), {ambient: 1, diffusivity: 1, specularity: 1, texture:context.get_instance("assets/bg.jpg", false)}),
-
-
+            arena_shade4: context.get_instance(Phong_Shader).material(Color.of(0.9, 0.9, 0, 1), {ambient: 1, diffusivity: 1, specularity: 1}),
+            moon: context.get_instance(Phong_Shader).material(Color.of(0,0,0,1), {ambient: 1, diffusivity: 1, specularity: 1, texture:context.get_instance("assets/moon.jpg", false)}),
+            star_back: context.get_instance(Phong_Shader).material(Color.of(0,0,0,1), {ambient: 1, diffusivity: 1, specularity: 1, texture:context.get_instance("assets/star_back.jpg", false)}),
+            bricks: context.get_instance(Phong_Shader).material(Color.of(0,0,0,1), {ambient: 1, diffusivity: 1, specularity: 1, texture:context.get_instance("assets/bricks.png", false)}),
         };
 
-    this.texture_array = [this.materials.arena_shade, this.materials.arena_shade1, this.materials.arena_shade2, this.materials.arena_shade3];
+    this.texture_array = [this.materials.moon, this.materials.bricks, this.materials.arena_shade, this.materials.arena_shade1,this.materials.arena_shade4, this.materials.arena_shade2, this.materials.arena_shade3];
 
     this.lights = [new Light(Vec.of(0, 10, 5, 1), Color.of(1, 1, 1, 1), 1000)];
     this.acc = Vec.of(0, 0, 0);
@@ -81,8 +81,9 @@ constructor(context, control_box) {
     //This gets set when the game is over
     this.lose = 0;
 
+    this.level_texture = this.texture_array[0];
+
     this.sphere_radius = .5;
-    this.level_texture = this.texture_array[Math.round(Math.random()*(this.texture_array.length-1))];
 }
 
 
@@ -107,9 +108,6 @@ display(graphics_state) {
     graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
     const t = graphics_state.animation_time / 1000, dt = graphics_state.animation_delta_time / 1000;
 
-    let background_trans = Mat4.identity();
-    background_trans = background_trans.times(Mat4.translation([0,0,-50])).times(Mat4.scale([50,30,1]));
-    this.shapes.bg.draw(graphics_state, background_trans, this.materials.background);
 
     this.z_pos[0] = (t * this.grid_speed_factor) % this.initial_grid_dist - (this.initial_grid_dist - 10);
     if (this.z_pos[0] > 8) {
@@ -120,7 +118,13 @@ display(graphics_state) {
         }
         this.xy_pos[0][0] = this.pos[0] - 16;
         this.xy_pos[0][1] = this.pos[1] - 16;
+        let rand_level = Math.floor(Math.random()*(this.texture_array.length-.01));
+        this.level_texture = this.texture_array[rand_level];
     }
+
+    let background_trans = Mat4.identity();
+    background_trans = background_trans.times(Mat4.translation([0,0,-50])).times(Mat4.scale([50,30,1]));
+    this.shapes.bg.draw(graphics_state, background_trans, this.materials.star_back);
 
     let boxMinZ = this.z_pos[0] - 1;
     let boxMaxZ = this.z_pos[0] + 1;
@@ -160,7 +164,7 @@ display(graphics_state) {
         for (let j = 0; j < this.arena.length; j++) {
             if (this.arena[i][j] == 1) {
                 arena_transform = Mat4.translation([2 * i + 1 + this.xy_pos[0][0], 2 * j + 1 + this.xy_pos[0][1], this.z_pos[0]]);
-                this.shapes.arena_cube.draw(graphics_state, arena_transform, this.materials.texture1);
+                this.shapes.arena_cube.draw(graphics_state, arena_transform, this.level_texture);
             }
         }
     }
