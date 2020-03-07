@@ -28,7 +28,7 @@ class Vec extends Float32Array        // Vectors of floating point numbers.  Thi
   plus       (b) { return this.map(   (x,i) => x +  b[i]                ) }
   minus      (b) { return this.map(   (x,i) => x -  b[i]                ) }
   mult_pairs (b) { return this.map(   (x,i) => x *  b[i]                ) }
-  scale        (s) { this.forEach(  (x, i, a) => a[i] *= s                ) }
+  scale      (s) { this.forEach(  (x, i, a) => a[i] *= s                ) }
   times      (s) { return this.map(       x => s*x                      ) }
   randomized (s) { return this.map(       x => x + s*(Math.random()-.5) ) }
   mix     (b, s) { return this.map(   (x,i) => (1-s)*x + s*b[i]         ) }
@@ -105,7 +105,8 @@ window.Mat4 = window.tiny_graphics.Mat4 =
 class Mat4 extends Mat                               // Generate special 4x4 matrices that are useful for graphics.
 { static identity()       { return Mat.of( [ 1,0,0,0 ], [ 0,1,0,0 ], [ 0,0,1,0 ], [ 0,0,0,1 ] ); };
   static rotation( angle, axis )                                                    // Requires a scalar (angle) and a 3x1 Vec (axis)
-                          { let [ x, y, z ] = axis.normalized(), [ c, s ] = [ Math.cos( angle ), Math.sin( angle ) ], omc = 1.0 - c;
+                          { let [ x, y, z ] = Vec.from( axis ).normalized(), 
+                                   [ c, s ] = [ Math.cos( angle ), Math.sin( angle ) ], omc = 1.0 - c;
                             return Mat.of( [ x*x*omc + c,   x*y*omc - z*s, x*z*omc + y*s, 0 ],
                                            [ x*y*omc + z*s, y*y*omc + c,   y*z*omc - x*s, 0 ],
                                            [ x*z*omc - y*s, y*z*omc + x*s, z*z*omc + c,   0 ],
@@ -216,38 +217,6 @@ class Keyboard_Manager     // This class maintains a running list of which keys 
     add( shortcut_combination, callback = () => {}, keyup_callback = () => {} )
       { this.saved_controls[ shortcut_combination.join('+') ] = { shortcut_combination, callback, keyup_callback }; }
   }
-
-  
-window.Code_Manager = window.tiny_graphics.Code_Manager =
-class Code_Manager                            // Break up a string containing code (any es6 JavaScript).  The parser expression
-{                                             // is from https://github.com/lydell/js-tokens which states the following limitation:
-  constructor( code )                         // "If the end of a statement looks like a regex literal (even if it isn’t), it will 
-    { const es6_tokens_parser = RegExp( [     // be treated as one."  (This can miscolor lines of code containing divisions and comments).
-        /((['"])(?:(?!\2|\\).|\\(?:\r\n|[\s\S]))*(\2)?|`(?:[^`\\$]|\\[\s\S]|\$(?!\{)|\$\{(?:[^{}]|\{[^}]*\}?)*\}?)*(`)?)/,    // Any string.
-        /(\/\/.*)|(\/\*(?:[^*]|\*(?!\/))*(\*\/)?)/,                                                                           // Any comment (2 forms).  And next, any regex:
-        /(\/(?!\*)(?:\[(?:(?![\]\\]).|\\.)*\]|(?![\/\]\\]).|\\.)+\/(?:(?!\s*(?:\b|[\u0080-\uFFFF$\\'"~({]|[+\-!](?!=)|\.?\d))|[gmiyu]{1,5}\b(?![\u0080-\uFFFF$\\]|\s*(?:[+\-*%&|^<>!=?({]|\/(?![\/*])))))/,
-        /(0[xX][\da-fA-F]+|0[oO][0-7]+|0[bB][01]+|(?:\d*\.\d+|\d+\.?)(?:[eE][+-]?\d+)?)/,                                     // Any number.
-        /((?!\d)(?:(?!\s)[$\w\u0080-\uFFFF]|\\u[\da-fA-F]{4}|\\u\{[\da-fA-F]+\})+)/,                                          // Any name.
-        /(--|\+\+|&&|\|\||=>|\.{3}|(?:[+\-\/%&|^]|\*{1,2}|<{1,2}|>{1,3}|!=?|={1,2})=?|[?~.,:;[\](){}])/,                      // Any punctuator.
-        /(\s+)|(^$|[\s\S])/                                                                                                   // Any whitespace. Lastly, blank/invalid.
-          ].map( r => r.source ).join('|'), 'g' );
-
-      this.tokens = [];    this.no_comments = [];    let single_token = null;
-      while( ( single_token = es6_tokens_parser.exec( code ) ) !== null )
-        { let token = { type: "invalid", value: single_token[0] }
-               if ( single_token[  1 ] ) token.type = "string" , token.closed = !!( single_token[3] || single_token[4] )
-          else if ( single_token[  5 ] ) token.type = "comment"
-          else if ( single_token[  6 ] ) token.type = "comment", token.closed = !!single_token[7]
-          else if ( single_token[  8 ] ) token.type = "regex"
-          else if ( single_token[  9 ] ) token.type = "number"
-          else if ( single_token[ 10 ] ) token.type = "name"
-          else if ( single_token[ 11 ] ) token.type = "punctuator"
-          else if ( single_token[ 12 ] ) token.type = "whitespace"        
-          this.tokens.push( token )
-          if( token.type != "whitespace" && token.type != "comment" ) this.no_comments.push( token.value );
-        }  
-    }
-}
 
 
 window.Vertex_Buffer = window.tiny_graphics.Vertex_Buffer =
@@ -451,8 +420,8 @@ class Shader                   // Your subclasses of Shader will manage strings 
 
 window.Texture = window.tiny_graphics.Texture =
 class Texture                                // The Texture class wraps a pointer to a new texture buffer along with a new HTML image object.
-{ constructor(             gl, filename, bool_mipMap, bool_will_copy_to_GPU = true )
-    { Object.assign( this, {   filename, bool_mipMap, bool_will_copy_to_GPU,       id: gl.createTexture() } );
+{ constructor(             gl, filename, use_mipMap = true, bool_will_copy_to_GPU = true )
+    { Object.assign( this, {   filename, use_mipMap,        bool_will_copy_to_GPU,       id: gl.createTexture() } );
 
       gl.bindTexture(gl.TEXTURE_2D, this.id );
       gl.texImage2D (gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
@@ -464,7 +433,7 @@ class Texture                                // The Texture class wraps a pointe
           gl.texImage2D   ( gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.image );
           gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR );  // Always use bi-linear sampling when the image
                                                                                 // will appear magnified. When it will appear shrunk,
-          if( bool_mipMap )                                                     // it's best to use tri-linear sampling of its mip maps:
+          if( use_mipMap )                                                      // it's best to use tri-linear sampling of its mip maps:
             { gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR); gl.generateMipmap(gl.TEXTURE_2D); }
           else                                                                        // We can also use the worst sampling method, to
               gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST );   // illustrate the difference that mip-mapping makes.
@@ -472,14 +441,14 @@ class Texture                                // The Texture class wraps a pointe
         }
       if( bool_will_copy_to_GPU )                                               // Avoid a browser warning, and load the image file.
         { this.image.crossOrigin = "Anonymous"; this.image.src = this.filename; }
-    } 
+    }
 }
 
 
-window.Canvas_Manager = window.tiny_graphics.Canvas_Manager =
-class Canvas_Manager      // This class manages a whole graphics program for one on-page canvas, including its textures, shapes, shaders,
-{                         // and scenes.  In addition to requesting a WebGL context and storing the aforementioned items, it informs the
-                          // canvas of which functions to call during events - such as a key getting pressed or it being time to redraw.
+window.Webgl_Manager = window.tiny_graphics.Webgl_Manager =
+class Webgl_Manager      // This class manages a whole graphics program for one on-page canvas, including its textures, shapes, shaders,
+{                        // and scenes.  In addition to requesting a WebGL context and storing the aforementioned items, it informs the
+                         // canvas of which functions to call during events - such as a key getting pressed or it being time to redraw.
   constructor( canvas, background_color, dimensions )
     { let gl, demos = [];
       Object.assign( this, { instances: new Map(), shapes_in_use: {}, scene_components: [], prev_time: 0, canvas,
@@ -514,8 +483,8 @@ class Canvas_Manager      // This class manages a whole graphics program for one
     { if( this.instances[ shader_or_texture ] )     // or Texture) loaded, check if we already have one GPU-side first.
         return this.instances[ shader_or_texture ];     // Return the one that already is loaded if it exists.  Otherwise,
       if( typeof shader_or_texture == "string" )        // If a texture was requested, load it onto a GPU buffer.
-        return this.instances[ shader_or_texture ] = new Texture( this.gl, shader_or_texture, true );  // Or if it's a shader:
-      return this.instances[ shader_or_texture ] = new ( shader_or_texture )( this.gl );    // Compile it and put it on the GPU.
+        return this.instances[ shader_or_texture ] = new Texture( this.gl, ...arguments );  // Or if it's a shader:
+      return   this.instances[ shader_or_texture ] = new ( shader_or_texture )( this.gl );  // Compile it and put it on the GPU.
     }
   register_scene_component( component )     // Allow a Scene_Component to show their control panel and enter the event loop.
     { this.scene_components.unshift( component );  component.make_control_panel( component.controls );
@@ -536,14 +505,14 @@ class Canvas_Manager      // This class manages a whole graphics program for one
 window.Scene_Component = window.tiny_graphics.Scene_Component =
 class Scene_Component       // The Scene_Component superclass is the base class for any scene part or code snippet that you can add to a
 {                           // canvas.  Make your own subclass(es) of this and override their methods "display()" and "make_control_panel()"
-                            // to make them do something.  Finally, push them onto your Canvas_Manager's "scene_components" array.
-  constructor( canvas_manager, control_box )
+                            // to make them do something.  Finally, push them onto your Webgl_Manager's "scene_components" array.
+  constructor( webgl_manager, control_box )
     { const callback_behavior = ( callback, event ) => 
            { callback( event );
              event.preventDefault();    // Fire the callback and cancel any default browser shortcut that is an exact match.
              event.stopPropagation();   // Don't bubble the event to parent nodes; let child elements be targetted in isolation.
            }
-      Object.assign( this, { key_controls: new Keyboard_Manager( document, callback_behavior), globals: canvas_manager.globals } );
+      Object.assign( this, { key_controls: new Keyboard_Manager( document, callback_behavior), globals: webgl_manager.globals } );
       control_box.appendChild( Object.assign( document.createElement("div"), { textContent: this.constructor.name, className: "control-title" } ) )
       this.control_panel = control_box.appendChild( document.createElement( "div" ) );
       this.control_panel.className = "control-div";        
@@ -576,14 +545,14 @@ class Scene_Component       // The Scene_Component superclass is the base class 
       if( !shortcut_combination ) return;
       this.key_controls.add( shortcut_combination, press, release );
     }
-  submit_shapes( canvas_manager, shapes )           // Call this to start using a set of shapes.  It ensures that this scene as well as the
-                                                    // Canvas_Manager has pointers to the shapes when needed.  It also loads each shape onto
+  submit_shapes( webgl_manager, shapes )            // Call this to start using a set of shapes.  It ensures that this scene as well as the
+                                                    // Webgl_Manager has pointers to the shapes when needed.  It also loads each shape onto
     { if( !this.shapes ) this.shapes = {};          // the GPU if other scenes haven't done so already.  The shapes will be accessible from
       for( let s in shapes )                        // a scene by calling "this.ahapes".
-        { if( canvas_manager.shapes_in_use[s] )                 // If two scenes give any shape the same name as an existing one, the
-            this.shapes[s] = canvas_manager.shapes_in_use[s];   // existing one is used instead and the new shape is thrown out.
-          else this.shapes[s] = canvas_manager.shapes_in_use[s] = shapes[s];
-          this.shapes[s].copy_onto_graphics_card( canvas_manager.gl );
+        { if( webgl_manager.shapes_in_use[s] )                 // If two scenes give any shape the same name as an existing one, the
+            this.shapes[s] = webgl_manager.shapes_in_use[s];   // existing one is used instead and the new shape is thrown out.
+          else this.shapes[s] = webgl_manager.shapes_in_use[s] = shapes[s];
+          this.shapes[s].copy_onto_graphics_card( webgl_manager.gl );
         }
     }                                                          // You have to override the following functions to use class Scene_Component.
   make_control_panel(){}  display( graphics_state ){}  show_explanation( document_section ){}
@@ -593,7 +562,37 @@ class Scene_Component       // The Scene_Component superclass is the base class 
 window.Canvas_Widget = window.tiny_graphics.Canvas_Widget =
 class Canvas_Widget                    // Canvas_Widget embeds a WebGL demo onto a website, along with various panels of controls.
 { constructor( element, scenes, show_controls = true )   // One panel exists per each scene that's used in the canvas.  You can use up
-    { this.create( element, scenes, show_controls ) }    // to 16 Canvas_Widgets; browsers support up to 16 WebGL contexts per page.    
+    { this.create( element, scenes, show_controls )      // to 16 Canvas_Widgets; browsers support up to 16 WebGL contexts per page.    
+
+      const rules = [ ".canvas-widget { width: 1080px; background: DimGray }",
+                      ".canvas-widget * { font-family: monospace }",
+                      ".canvas-widget canvas { width: 1080px; height: 600px; margin-bottom:-3px }",
+                      ".canvas-widget div { background: white }",
+                      ".canvas-widget table { border-collapse: collapse; display:block; overflow-x: auto; }",
+                      ".canvas-widget table.control-box { width: 1080px; border:0; margin:0; max-height:380px; transition:.5s; overflow-y:scroll; background:DimGray }",
+                      ".canvas-widget table.control-box:hover { max-height:500px }",
+                      ".canvas-widget table.control-box td { overflow:hidden; border:0; background:DimGray; border-radius:30px }",
+                      ".canvas-widget table.control-box td .control-div { background: #EEEEEE; height:338px; padding: 5px 5px 5px 30px; box-shadow: 25px 0px 60px -15px inset }",
+                      ".canvas-widget table.control-box td * { background:transparent }",
+                      ".canvas-widget table.control-box .control-div td { border-radius:unset }",
+                      ".canvas-widget table.control-box .control-title { padding:7px 40px; color:white; background:DarkSlateGray; box-shadow: 25px 0px 70px -15px inset black }",
+                      ".canvas-widget *.live_string { display:inline-block; background:unset }",
+                      ".dropdown { display:inline-block }",
+                      ".dropdown-content { display:inline-block; transition:.2s; transform: scaleY(0); overflow:hidden; position: absolute; \
+                                            z-index: 1; background:#E8F6FF; padding: 16px; margin-left:30px; min-width: 100px; \
+                                            box-shadow: 5px 10px 16px 0px rgba(0,0,0,0.2) inset; border-radius:10px }",
+                      ".dropdown-content a { color: black; padding: 4px 4px; display: block }",
+                      ".dropdown a:hover { background: #f1f1f1 }",
+                      ".canvas-widget button { background: #4C9F50; color: white; padding: 6px; border-radius:9px; \
+                                                box-shadow: 4px 6px 16px 0px rgba(0,0,0,0.3); transition: background .3s, transform .3s }",
+                      ".canvas-widget button:hover, button:focus { transform: scale(1.3); color:gold }",
+                      ".link { text-decoration:underline; cursor: pointer }",
+                      ".show { transform: scaleY(1); height:200px; overflow:auto }",
+                      ".hide { transform: scaleY(0); height:0px; overflow:hidden  }" ];
+                      
+      const style = document.head.appendChild( document.createElement( "style" ) );
+      for( const r of rules ) document.styleSheets[document.styleSheets.length - 1].insertRule( r, 0 )
+    }
   create( element, scenes, show_controls )
     { this.patch_ios_bug();
       element = document.querySelector( "#" + element );
@@ -608,19 +607,147 @@ class Canvas_Widget                    // Canvas_Widget embeds a WebGL demo onto
         Vec.from = function( arr ) { return new Vec( Array.from( arr       ) ) }
       }
     }
-  populate_canvas( element, scenes, show_controls )   // Assign a Canvas_Manager to the WebGL canvas.
+  populate_canvas( element, scenes, show_controls )   // Assign a Webgl_Manager to the WebGL canvas.
     { if( !scenes.every( x => window[ x ] ) )         // Make sure each scene class really exists.
         throw "(Featured class not found)";
       const canvas = element.appendChild( document.createElement( "canvas" ) );
       const control_panels = element.appendChild( document.createElement( "table" ) );
-      control_panels.className = "control-box";
+      control_panels.className = "control-box";      
       if( !show_controls ) control_panels.style.display = "none";
       const row = control_panels.insertRow( 0 );
-      this.canvas_manager = new Canvas_Manager( canvas, Color.of( 0,0,0,1 ) );  // Second parameter sets background color.
+      this.webgl_manager = new Webgl_Manager( canvas, Color.of( 0,0,0,1 ) );  // Second parameter sets background color.
 
       for( let scene_class_name of scenes )                  // Register the initially requested scenes to the render loop.
-        this.canvas_manager.register_scene_component( new window[ scene_class_name ]( this.canvas_manager, row.insertCell() ) );   
+        this.webgl_manager.register_scene_component( new window[ scene_class_name ]( this.webgl_manager, row.insertCell() ) );   
                            
-      this.canvas_manager.render();   // Start WebGL initialization.  Note that render() will re-queue itself for more calls.
+      this.webgl_manager.render();   // Start WebGL initialization.  Note that render() will re-queue itself for more calls.
+    }
+}
+
+  
+window.Code_Manager = window.tiny_graphics.Code_Manager =
+class Code_Manager                            // Break up a string containing code (any es6 JavaScript).  The parser expression
+{                                             // is from https://github.com/lydell/js-tokens which states the following limitation:
+  constructor( code )                         // "If the end of a statement looks like a regex literal (even if it isn’t), it will 
+    { const es6_tokens_parser = RegExp( [     // be treated as one."  (This can miscolor lines of code containing divisions and comments).
+        /((['"])(?:(?!\2|\\).|\\(?:\r\n|[\s\S]))*(\2)?|`(?:[^`\\$]|\\[\s\S]|\$(?!\{)|\$\{(?:[^{}]|\{[^}]*\}?)*\}?)*(`)?)/,    // Any string.
+        /(\/\/.*)|(\/\*(?:[^*]|\*(?!\/))*(\*\/)?)/,                                                                           // Any comment (2 forms).  And next, any regex:
+        /(\/(?!\*)(?:\[(?:(?![\]\\]).|\\.)*\]|(?![\/\]\\]).|\\.)+\/(?:(?!\s*(?:\b|[\u0080-\uFFFF$\\'"~({]|[+\-!](?!=)|\.?\d))|[gmiyu]{1,5}\b(?![\u0080-\uFFFF$\\]|\s*(?:[+\-*%&|^<>!=?({]|\/(?![\/*])))))/,
+        /(0[xX][\da-fA-F]+|0[oO][0-7]+|0[bB][01]+|(?:\d*\.\d+|\d+\.?)(?:[eE][+-]?\d+)?)/,                                     // Any number.
+        /((?!\d)(?:(?!\s)[$\w\u0080-\uFFFF]|\\u[\da-fA-F]{4}|\\u\{[\da-fA-F]+\})+)/,                                          // Any name.
+        /(--|\+\+|&&|\|\||=>|\.{3}|(?:[+\-\/%&|^]|\*{1,2}|<{1,2}|>{1,3}|!=?|={1,2})=?|[?~.,:;[\](){}])/,                      // Any punctuator.
+        /(\s+)|(^$|[\s\S])/                                                                                                   // Any whitespace. Lastly, blank/invalid.
+          ].map( r => r.source ).join('|'), 'g' );
+
+      this.tokens = [];    this.no_comments = [];    let single_token = null;
+      while( ( single_token = es6_tokens_parser.exec( code ) ) !== null )
+        { let token = { type: "invalid", value: single_token[0] }
+               if ( single_token[  1 ] ) token.type = "string" , token.closed = !!( single_token[3] || single_token[4] )
+          else if ( single_token[  5 ] ) token.type = "comment"
+          else if ( single_token[  6 ] ) token.type = "comment", token.closed = !!single_token[7]
+          else if ( single_token[  8 ] ) token.type = "regex"
+          else if ( single_token[  9 ] ) token.type = "number"
+          else if ( single_token[ 10 ] ) token.type = "name"
+          else if ( single_token[ 11 ] ) token.type = "punctuator"
+          else if ( single_token[ 12 ] ) token.type = "whitespace"        
+          this.tokens.push( token )
+          if( token.type != "whitespace" && token.type != "comment" ) this.no_comments.push( token.value );
+        }  
+    }
+}
+
+
+window.Code_Widget = window.tiny_graphics.Code_Widget =
+class Code_Widget
+{ constructor( element, selected_class )
+    { let rules = [ ".code-widget .code-panel { background:white; overflow:auto; font-family:monospace; width:1060px; padding:10px; padding-bottom:40px; max-height: 500px; \
+                                                  border-radius:12px; box-shadow: 20px 20px 90px 0px powderblue inset, 5px 5px 30px 0px blue inset }",
+                ".code-widget .code-display { min-width:1800px; padding:10px; white-space:pre-wrap; background:transparent }",
+                ".code-widget .edit-button { left:800px; z-index:2; position:absolute; outline:0; height:80px; width:80px; border-radius:50% }",
+                ".code-widget table { display:block; overflow-x:auto; width:1080px; border-radius:25px; border-collapse:collapse; border: 2px solid black }",
+               ".code-widget table.class-list td { border-width:thin; background: #EEEEEE; padding:12px; font-family:monospace; border: 1px solid black }"
+                 ];
+
+      for( const r of rules ) document.styleSheets[0].insertRule( r, 1 );
+      
+      if( !window[ selected_class ] ) throw "Class not found.";
+      selected_class = window[ selected_class ];
+        
+
+      element = document.querySelector( "#" + element );
+      const code_panel = element.appendChild( document.createElement( "div" ) );
+      code_panel.className = "code-panel";
+      const text        = code_panel.appendChild( document.createElement( "p" ) );
+      text.textContent  = "Below is the code for the demo that's running.  Click links to see definitions!";
+      this.code_display = code_panel.appendChild( document.createElement( "div" ) );
+      this.code_display.className = "code-display";
+
+      const class_list = element.appendChild( document.createElement( "table" ) );
+      class_list.className = "class-list";   
+      const top_cell = class_list.insertRow( -1 ).insertCell( -1 );
+      top_cell.colSpan = 2;
+      top_cell.appendChild( document.createTextNode("Click below to navigate through all classes that are defined.") );
+      const content = top_cell.appendChild( document.createElement( "p" ) );
+      content.style = "text-align:center; margin:0; font-weight:bold";
+      content.innerHTML = "main-scene.js<br>Main Scene: ";
+      const main_scene_link = content.appendChild( document.createElement( "a" ) );
+      main_scene_link.href = "javascript:void(0);"
+      main_scene_link.addEventListener( 'click', () => this.display_code( selected_class ) );
+      main_scene_link.textContent = selected_class.name;
+
+      const second_cell = class_list.insertRow( -1 ).insertCell( -1 );
+      second_cell.colSpan = 2;
+      second_cell.style = "text-align:center; font-weight:bold";
+      const index_src_link = second_cell.appendChild( document.createElement( "a" ) );
+      index_src_link.href = "javascript:void(0);"
+      index_src_link.addEventListener( 'click', () => this.display_code() );
+      index_src_link.textContent = "This page's complete HTML source";
+
+      const third_row = class_list.insertRow( -1 );
+      third_row.style = "text-align:center";
+      third_row.innerHTML = "<td><b>tiny-graphics.js</b><br>(Always the same)</td> \
+                             <td><b>dependencies.js</b><br>(Different for every demo)</td>";
+    
+      const fourth_row = class_list.insertRow( -1 );
+
+      for( let list of [ tiny_graphics, classes ] )
+      { const cell = fourth_row.appendChild( document.createElement( "td" ) );
+        const class_names = Object.keys( list ).filter( x => x != selected_class.name );     // List all class names except the main one,
+        cell.style = "white-space:normal"                                                    // which we'll display separately.
+        for( let name of class_names )
+        { const class_link = cell.appendChild( document.createElement( "a" ) );
+          class_link.style["margin-right"] = "80px"
+          class_link.href = "javascript:void(0);"
+          class_link.addEventListener( 'click', () => this.display_code( window[name] ) );
+          class_link.textContent = name;
+          cell.appendChild( document.createTextNode(" ") );
+        }
+      }
+      this.display_code( selected_class );
+    }
+  display_code( class_to_display )                                                           // Pass undefined to choose index.html source.
+    { this.selected_class = class_to_display;
+      if( class_to_display ) this.format_code( class_to_display.toString() );
+      else fetch( document.location.href )
+                .then(   response => response.text() )
+                .then( pageSource => this.format_code( pageSource ) );
+    }
+  format_code( code_string )
+    { this.code_display.innerHTML = "";
+      const color_map = { string: "chocolate", comment: "green", regex: "blue", number: "magenta", 
+                            name: "black", punctuator: "red", whitespace: "black" };
+
+      for( let t of new Code_Manager( code_string ).tokens )
+        if( t.type == "name" && [ ...Object.keys( tiny_graphics ), ...Object.keys( classes ) ].includes( t.value ) )
+          { const link = this.code_display.appendChild( document.createElement( 'a' ) );
+            link.href = "javascript:void(0);"
+            link.addEventListener( 'click', () => this.display_code( window[ t.value ] ) );
+            link.textContent = t.value;
+          }
+        else
+          { const span = this.code_display.appendChild( document.createElement( 'span' ) );
+            span.style.color = color_map[t.type];
+            span.textContent = t.value;
+          }
     }
 }
