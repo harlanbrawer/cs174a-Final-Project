@@ -17,6 +17,7 @@ constructor(context, control_box) {
         ball: new Subdivision_Sphere(4),
         arena_cube: new Cube,
         bg: new Square,
+        text: new Text_Line(100),
     };
     this.submit_shapes(context, shapes);
 

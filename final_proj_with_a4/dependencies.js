@@ -310,6 +310,42 @@ class Axis_Arrows extends Shape                                   // An axis set
     }
 }
 
+window.Text_Line = window.classes.Text_Line =
+class Text_Line extends Shape
+{ constructor( max_size )
+    { super( "position", "normal", "texture_coord" );
+      this.max_size = max_size;
+      var object_transform = Mat4.identity();
+      for( var i = 0; i < max_size; i++ )
+      {                                       // Each quad is a separate Square instance:
+        Square.insert_transformed_copy_into( this, [], object_transform );
+        object_transform.post_multiply( Mat4.translation( 1.5,0,0 ) );
+      }
+    }
+  set_string( line, context )
+    { this.arrays.texture_coord = [];
+      for( var i = 0; i < this.max_size; i++ )
+      {
+        var row = Math.floor( ( i < line.length ? line.charCodeAt( i ) : ' '.charCodeAt() ) / 16 ),
+            col = Math.floor( ( i < line.length ? line.charCodeAt( i ) : ' '.charCodeAt() ) % 16 );
+
+        var skip = 3, size = 32, sizefloor = size - skip;
+        var dim = size * 16,
+            left  = (col * size + skip) / dim,      top    = (row * size + skip) / dim,
+            right = (col * size + sizefloor) / dim, bottom = (row * size + sizefloor + 5) / dim;
+
+        this.arrays.texture_coord.push( ...Vector.cast( [ left,  1-bottom], [ right, 1-bottom ],
+            [ left,  1-top   ], [ right, 1-top    ] ) );
+      }
+      if( !this.existing )
+      { this.copy_onto_graphics_card( context );
+        this.existing = true;
+      }
+      else
+        this.copy_onto_graphics_card( context, ["texture_coord"], false );
+    }
+}
+    
 
 window.Basic_Shader = window.classes.Basic_Shader =
 class Basic_Shader extends Shader             // Subclasses of Shader each store and manage a complete GPU program.  This Shader is 
@@ -693,9 +729,9 @@ class Global_Info_Table extends Scene_Component                 // A class that 
       this.key_triggered_button( "(Un)pause animation", ["Alt", "a"], function() { globals.animate ^= 1; } ); this.new_line();
       this.live_string( box => { box.textContent = "Animation Time: " + ( globals.graphics_state.animation_time/1000 ).toFixed(3) + "s" } );
       this.live_string( box => { box.textContent = globals.animate ? " " : " (paused)" } );  this.new_line();
-      this.key_triggered_button( "Gouraud shading",     ["Alt", "g"], function() { globals.graphics_state.gouraud       ^= 1;         } ); 
+      this.key_triggered_button( "Gouraud shading",     ["Alt", "g"], function() { globals.graphics_state.gouraud       ^= 1;         } );
       this.new_line();
-      this.key_triggered_button( "Normals shading",     ["Alt", "n"], function() { globals.graphics_state.color_normals ^= 1;         } ); 
+      this.key_triggered_button( "Normals shading",     ["Alt", "n"], function() { globals.graphics_state.color_normals ^= 1;         } );
       this.new_line();
       
       const label = this.control_panel.appendChild( document.createElement( "p" ) );
