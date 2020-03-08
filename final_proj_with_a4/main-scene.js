@@ -45,6 +45,7 @@ constructor(context, control_box) {
             nine: context.get_instance(Phong_Shader).material(Color.of(1,1,1,1), {ambient: 1, diffusivity: 1, specularity: 1, texture:context.get_instance("assets/9-128.png", false)}),
             zero: context.get_instance(Phong_Shader).material(Color.of(1,1,1,1), {ambient: 1, diffusivity: 1, specularity: 1, texture:context.get_instance("assets/0-128.png", false)}),
             boom: context.get_instance(Phong_Shader).material(Color.of(0,0,0,1), {ambient: 1, diffusivity: 1, specularity: 1, texture:context.get_instance("assets/boom.png", false)}),
+            red_earth: context.get_instance(Phong_Shader).material(Color.of(0,0,0,1), {ambient: 1, diffusivity: 1, specularity: 1, texture:context.get_instance("assets/redearth.png", false)}),
         };
 
     this.texture_array = [this.materials.moon, this.materials.bricks, this.materials.arena_shade, this.materials.arena_shade1,this.materials.arena_shade4, this.materials.arena_shade2, this.materials.arena_shade3];
@@ -212,8 +213,18 @@ display(graphics_state) {
         //this.pos = Vec.of(0,0,0);
     }
 
+    let end_time = 0;
+
+    if(this.lose == 1 && this.initial_lose_time != -1) {
+        end_time = t - this.initial_lose_time;
+    }
+
     let ball_transform = Mat4.identity().times(Mat4.translation(this.pos)).times(Mat4.scale([.5, .5, .5]));
-    this.shapes.ball.draw(graphics_state, ball_transform, this.materials.ball_shade);
+    if(this.lose == 0) {
+        this.shapes.ball.draw(graphics_state, ball_transform, this.materials.ball_shade);
+    } else {
+        this.shapes.ball.draw(graphics_state, ball_transform, this.materials.red_earth.override({color: Color.of(0, 0, 0, 1 - 0.2 * end_time)}));
+    }
 
 
     let desired = Mat4.inverse(ball_transform.times(Mat4.rotation(this.vel[0] / 50, Vec.of(0, 0, 1))).times(Mat4.translation([0, 0, 20])));
@@ -273,7 +284,6 @@ display(graphics_state) {
     }
 
     if(this.lose == 1 && this.initial_lose_time != -1){
-        let end_time = t - this.initial_lose_time;
         if(end_time > 4){
             end_time = 4;
         }
