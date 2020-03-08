@@ -44,7 +44,7 @@ constructor(context, control_box) {
             eight: context.get_instance(Phong_Shader).material(Color.of(1,1,1,1), {ambient: 1, diffusivity: 1, specularity: 1, texture:context.get_instance("assets/8-128.png", false)}),
             nine: context.get_instance(Phong_Shader).material(Color.of(1,1,1,1), {ambient: 1, diffusivity: 1, specularity: 1, texture:context.get_instance("assets/9-128.png", false)}),
             zero: context.get_instance(Phong_Shader).material(Color.of(1,1,1,1), {ambient: 1, diffusivity: 1, specularity: 1, texture:context.get_instance("assets/0-128.png", false)}),
-
+            boom: context.get_instance(Phong_Shader).material(Color.of(0,0,0,1), {ambient: 1, diffusivity: 1, specularity: 1, texture:context.get_instance("assets/boom.png", false)}),
         };
 
     this.texture_array = [this.materials.moon, this.materials.bricks, this.materials.arena_shade, this.materials.arena_shade1,this.materials.arena_shade4, this.materials.arena_shade2, this.materials.arena_shade3];
@@ -95,6 +95,7 @@ constructor(context, control_box) {
     this.score_flag = true;
     //This gets set when the game is over
     this.lose = 0;
+    this.initial_lose_time = -1;
 
     this.level_texture = this.texture_array[0];
 
@@ -174,6 +175,9 @@ display(graphics_state) {
 
             if (distance < .5) {
                 this.lose = 1;
+                if(this.initial_lose_time == -1){
+                    this.initial_lose_time = t;
+                }
             }
         }
     }
@@ -266,6 +270,15 @@ display(graphics_state) {
         this.shapes.bg.draw(graphics_state, score_transformation1, this.materials.eight);
     } else if(score_oneth == 9) {
         this.shapes.bg.draw(graphics_state, score_transformation1, this.materials.nine);
+    }
+
+    if(this.lose == 1 && this.initial_lose_time != -1){
+        let end_time = t - this.initial_lose_time;
+        if(end_time > 4){
+            end_time = 4;
+        }
+        let boom_transformation = Mat4.translation([0 + this.pos[0], 0.3 + this.pos[1], 1]).times(Mat4.scale([0.5, 0.5, 0.5]));
+        this.shapes.bg.draw(graphics_state, boom_transformation, this.materials.boom.override({color: Color.of(0, 0, 0, 0.25*end_time)}));
     }
 }
 };
