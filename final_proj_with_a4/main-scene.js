@@ -102,6 +102,10 @@ constructor(context, control_box) {
     this.lose = 0;
     this.initial_lose_time = -1;
 
+    this.skip_intro = false;
+    this.set_time_to_zero = false;
+    this.already_set = false;
+
     this.level_texture = this.texture_array[0];
 
     this.sphere_radius = .5;
@@ -121,49 +125,60 @@ make_control_panel() {
     this.key_triggered_button( "Down",[ "k" ], () => this.backward =  1, undefined, () => this.backward = 0 );
     this.key_triggered_button( "Left",[ "j" ], () => this.left =  1, undefined, () => this.left = 0 );
     this.key_triggered_button( "Right",[ "l" ], () => this.right =  1, undefined, () => this.right = 0 );
-
+    this.key_triggered_button("Skip Intro", ["q"], function(){
+        this.skip_intro = true;
+        this.set_time_to_zero = true;
+    });
 }
 
 
 display(graphics_state) {
     graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
-    const t = (graphics_state.animation_time / 1000) -20, dt = graphics_state.animation_delta_time / 1000;
+    if(this.set_time_to_zero && (graphics_state.animation_time / 1000) < 25 && !this.already_set){
+        graphics_state.animation_time = 0;
+        this.set_time_to_zero = false;
+        this.already_set = true;
+    }
+    let t = 0;
+    let dt = 0;
+    if(!this.skip_intro || (graphics_state.animation_time / 1000) >= 25) {
+        t = (graphics_state.animation_time / 1000) - 25, dt = graphics_state.animation_delta_time / 1000;
+    } else {
+        t = (graphics_state.animation_time / 1000), dt = graphics_state.animation_delta_time / 1000;
+    }
 
-
-
-
-    if(t < -15){
+    if(t < -20 && !this.skip_intro){
         let string1 = "A long time ago in a galaxy far,\nfar away....";
         let multi_line_string = string1.split('\n');
         let text_transformation = Mat4.translation([-12, 0, 0]).times(Mat4.scale([0.5, 0.5, 1]));
         let line_transformation = Mat4.translation([0, -1, 0]);
         for(let line of multi_line_string) {
             this.shapes.text.set_string(line);
-            if(t >= -20 && t <= -19){
-                this.shapes.text.draw(graphics_state, text_transformation, this.materials.text_image.override({color: Color.of(0, 1, 0, t+20)}));
-            } else if (t >= -16 && t < -15) {
-                this.shapes.text.draw(graphics_state, text_transformation, this.materials.text_image.override({color: Color.of(0, 1, 0, -t-15)}));
+            if(t >= -25 && t <= -24){
+                this.shapes.text.draw(graphics_state, text_transformation, this.materials.text_image.override({color: Color.of(0, 1, 0, t+25)}));
+            } else if (t >= -21 && t < -20) {
+                this.shapes.text.draw(graphics_state, text_transformation, this.materials.text_image.override({color: Color.of(0, 1, 0, -t-20)}));
             }
             this.shapes.text.draw(graphics_state, text_transformation, this.materials.text_image.override({color: Color.of(0, 1, 0, 1)}));
             text_transformation = line_transformation.times(text_transformation);
         }
     }
 
-    if(t > -14.9 && t < -14.1){
-        graphics_state.camera_transform = Mat4.look_at(Vec.of(0, -9, 10), Vec.of(0, Math.sqrt(3), 4), Vec.of(0, 0, 1));
+    if(t > -19.9 && t < -19.1 && !this.skip_intro){
+        graphics_state.camera_transform = Mat4.look_at(Vec.of(0, -6, 10), Vec.of(0, Math.sqrt(3), 6), Vec.of(0, 0, 1));
     }
 
-    if(t >= -14 && t < -1){
+    if(t >= -19 && t < -1 && !this.skip_intro){
         let angle = Math.atan(9/5.5);
-        let background_trans = Mat4.translation([0, 50, -25]).times(Mat4.rotation(angle, Vec.of(1, 0, 0))).times(Mat4.scale([50, 30, 1]));
+        let background_trans = Mat4.translation([0, 35, -20]).times(Mat4.rotation(angle, Vec.of(1, 0, 0))).times(Mat4.scale([50, 30, 1]));
         if(t > -2 && t < -1){
             this.shapes.bg.draw(graphics_state, background_trans, this.materials.star_back.override({color: Color.of(0, 0, 0, -t-1)}));
-        } else if(t >= -14 && t < -13){
+        } /*else if(t >= -14 && t < -13){
             this.shapes.bg.draw(graphics_state, background_trans, this.materials.star_back.override({color: Color.of(0, 0, 0, t+14)}));
-        } else {
+        }*/ else {
             this.shapes.bg.draw(graphics_state, background_trans, this.materials.star_back);
         }
-        let t_into = t + 14;
+        let t_into = t + 19;
         let string1 = "Use the force to prevent the planet\nfrom hitting into space debris\nor else it will explode...\nUse i, j, k, l to control the planet";
         let multi_line_string = string1.split('\n');
         let text_transformation = Mat4.translation([-10, 0, 0]).times(Mat4.translation([0, t_into, 0])).times(Mat4.scale([0.4, 0.4, 1]));//.times(Mat4.rotation(Math.PI/2-atan(0.5), Vec.of(-1, 0, 0))).times(Mat4.scale([0.5, 0.5, 1]));
