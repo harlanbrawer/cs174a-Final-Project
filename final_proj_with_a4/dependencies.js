@@ -313,17 +313,17 @@ class Axis_Arrows extends Shape                                   // An axis set
 window.Text_Line = window.classes.Text_Line =
 class Text_Line extends Shape
 { constructor( max_size )
-    { super( "position", "normal", "texture_coord" );
+    { super( "positions", "normals", "texture_coords" );
       this.max_size = max_size;
       var object_transform = Mat4.identity();
       for( var i = 0; i < max_size; i++ )
       {                                       // Each quad is a separate Square instance:
         Square.insert_transformed_copy_into( this, [], object_transform );
-        object_transform.post_multiply( Mat4.translation( 1.5,0,0 ) );
+        object_transform = object_transform.times( Mat4.translation( [1.5,0,0] ) );
       }
     }
-  set_string( line, context )
-    { this.arrays.texture_coord = [];
+  set_string( line )
+    { this.texture_coords = [];
       for( var i = 0; i < this.max_size; i++ )
       {
         var row = Math.floor( ( i < line.length ? line.charCodeAt( i ) : ' '.charCodeAt() ) / 16 ),
@@ -334,15 +334,15 @@ class Text_Line extends Shape
             left  = (col * size + skip) / dim,      top    = (row * size + skip) / dim,
             right = (col * size + sizefloor) / dim, bottom = (row * size + sizefloor + 5) / dim;
 
-        this.arrays.texture_coord.push( ...Vector.cast( [ left,  1-bottom], [ right, 1-bottom ],
+        this.texture_coords.push( ...Vec.cast( [ left,  1-bottom], [ right, 1-bottom ],
             [ left,  1-top   ], [ right, 1-top    ] ) );
       }
       if( !this.existing )
-      { this.copy_onto_graphics_card( context );
+      { this.copy_onto_graphics_card( this.gl );
         this.existing = true;
       }
       else
-        this.copy_onto_graphics_card( context, ["texture_coord"], false );
+        this.copy_onto_graphics_card( this.gl, ["texture_coords"], false );
     }
 }
     
