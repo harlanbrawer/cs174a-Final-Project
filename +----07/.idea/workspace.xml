@@ -2,8 +2,35 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="eea6d5b0-06be-4633-87f7-62130899e941" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main-scene.js" beforeDir="false" afterPath="$PROJECT_DIR$/main-scene.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../final_proj_with_a4/.idea/a4.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../final_proj_with_a4/.idea/dictionaries/Colton.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../final_proj_with_a4/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../final_proj_with_a4/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../final_proj_with_a4/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../final_proj_with_a4/.idea/workspace.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../final_proj_with_a4/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../final_proj_with_a4/assets/0-128.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../final_proj_with_a4/assets/1-128.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../final_proj_with_a4/assets/2-128.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../final_proj_with_a4/assets/3-128.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../final_proj_with_a4/assets/4-128.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../final_proj_with_a4/assets/5-128.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../final_proj_with_a4/assets/6-128.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../final_proj_with_a4/assets/7-128.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../final_proj_with_a4/assets/8-128.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../final_proj_with_a4/assets/9-128.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../final_proj_with_a4/assets/bg.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../final_proj_with_a4/assets/bricks.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../final_proj_with_a4/assets/earth.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../final_proj_with_a4/assets/fav.ico" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../final_proj_with_a4/assets/moon.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../final_proj_with_a4/assets/star_back.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../final_proj_with_a4/dependencies.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../final_proj_with_a4/host.bat" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../final_proj_with_a4/host.command" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../final_proj_with_a4/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../final_proj_with_a4/main-scene.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../final_proj_with_a4/tiny-graphics.js" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -11,7 +38,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
   </component>
   <component name="ProjectId" id="1YXw38i3WFCWcf4gSasS4pNrVsf" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
@@ -77,6 +104,8 @@
       <workItem from="1583702091410" duration="1374000" />
       <workItem from="1583705491479" duration="12959000" />
       <workItem from="1583724254771" duration="2111000" />
+      <workItem from="1583732035849" duration="101000" />
+      <workItem from="1583799904840" duration="2714000" />
     </task>
     <servers />
   </component>
